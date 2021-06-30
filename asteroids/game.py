@@ -9,7 +9,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.display = pygame.display.set_mode(constants.SCREEN_SIZE)
-        self.asteroid = Asteroid(self)
+        self.asteroids = [Asteroid(self)]
         self.ship = Ship(self, constants.SCREEN_WIDTH / 2, constants.SCREEN_HEIGHT / 2)
         self.clock = pygame.time.Clock()
         self.dt = 0
@@ -24,14 +24,11 @@ class Game:
 
     def handle_events(self):
         events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    self.asteroid = Asteroid(self, size=random.randint(1, 3))
 
     def update(self):
         self.ship.update()
-        self.asteroid.update()
+        for asteroid in self.asteroids:
+            asteroid.update()
         key_pressed = pygame.key.get_pressed()
         
         if key_pressed[pygame.K_RIGHT]:
@@ -49,7 +46,8 @@ class Game:
 
     def draw(self):
         self.display.fill((0, 0, 0))
-        self.asteroid.draw()
+        for asteroid in self.asteroids:
+            asteroid.draw()
         self.ship.draw()
 
     def wrap_position(self, position):
