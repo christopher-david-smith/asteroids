@@ -136,7 +136,7 @@ class Asteroid:
         ).normalize() * random.randint(1, 3)
 
         # Generate number of points asteroid should have
-        number_of_points = random.randint(5, 10)
+        number_of_points = random.randint(10, 20)
         degrees_per_point = 360 / number_of_points
         
         # Then generate their angle and distance from the centre
