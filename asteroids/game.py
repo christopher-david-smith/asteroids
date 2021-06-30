@@ -108,6 +108,7 @@ class Ship:
         self.next_update_time = time.time()
         self.refresh_time = 0.1
         self.size = 100 # This shouldn't be hardcoded
+        self.colour = "white"
 
         self.point1, self.point2, self.point3 = None, None, None
 
@@ -119,6 +120,7 @@ class Ship:
         self.point3 = pygame.math.Vector2(self.direction)
         self.point3.rotate_ip(135)
         self.point3 = self.position - (self.point3 * 50)
+        self.check_for_collisions()
 
         speed = self.velocity.length()
         if self.thrusting:
@@ -136,15 +138,65 @@ class Ship:
 
         self.position = self.game.wrap_position(self.position + self.velocity, self.size)
 
+    def check_for_collisions(self):
+
+        # The following functions are taken without understanding from 
+        # https://stackoverflow.com/a/9997374
+        # vvv
+
+        def ccw(a, b, c):
+            return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
+
+        def intersect(a, b, c, d):
+            return ccw(a, c, d) != ccw(b, c, d) and ccw(a, b, c) != ccw(a, b, d)
+
+        # ^^^
+        
+        collision = False
+        for asteroid in self.game.asteroids:
+            if collision:
+                break
+
+            points = asteroid.points
+            for i, point in enumerate(asteroid.points):
+                try:
+                    next_point = asteroid.points[i+1]
+
+                except IndexError:
+                    next_point = asteroid.points[0]
+
+                # TODO - We're already doing all of this in the draw
+                # function! 
+                ap1 = pygame.math.Vector2(asteroid.position)
+                ap1.from_polar(point)
+                ap1= asteroid.position + ap1 
+            
+                ap2 = pygame.math.Vector2(asteroid.position)
+                ap2.from_polar(next_point)
+                ap2 = asteroid.position + ap2 
+
+                collision = True if intersect(ap1, ap2, self.point1, self.point2) else collision 
+                collision = True if intersect(ap1, ap2, self.point1, self.point3) else collision 
+                collision = True if intersect(ap1, ap2, self.point2, self.point3) else collision 
+
+                self.colour = "white"
+                if collision:
+                    self.colour = "red"
+                    break
+
+    def fire(self):
+        self.game.bullets.append(
+            Bullet(self.game, self.position, self.direction * -1)
+        )
 
     def rotate(self, clockwise=True):
         amount = 0.2 if clockwise else -0.2
         self.direction.rotate_ip(amount * self.game.dt)
         
     def draw(self):
-        pygame.draw.line(self.game.display, 'white', self.point1, self.point2)
-        pygame.draw.line(self.game.display, 'white', self.point1, self.point3)
-        pygame.draw.line(self.game.display, 'white', self.point2, self.point3)
+        pygame.draw.line(self.game.display, self.colour, self.point1, self.point2)
+        pygame.draw.line(self.game.display, self.colour, self.point1, self.point3)
+        pygame.draw.line(self.game.display, self.colour, self.point2, self.point3)
 
         # Thrusters
         if self.thrusting:
@@ -229,6 +281,11 @@ class Asteroid:
             y = random.randint(0, constants.SCREEN_HEIGHT)
 
         self.position = pygame.math.Vector2(x, y)
+        
+        # Uncomment for debugging
+        #self.position = pygame.math.Vector2(500, 500)
+        #self.rotation_speed = 0
+        #self.velocity = pygame.math.Vector2()
 
     def update(self):
         for i, _ in enumerate(self.points):
