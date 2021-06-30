@@ -10,6 +10,7 @@ class Game:
         pygame.init()
         self.display = pygame.display.set_mode(constants.SCREEN_SIZE)
         self.asteroids = [Asteroid(self)]
+        self.bullets = []
         self.ship = Ship(self, constants.SCREEN_WIDTH / 2, constants.SCREEN_HEIGHT / 2)
         self.clock = pygame.time.Clock()
         self.dt = 0
@@ -24,11 +25,22 @@ class Game:
 
     def handle_events(self):
         events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.ship.fire()
 
     def update(self):
         self.ship.update()
         for asteroid in self.asteroids:
             asteroid.update()
+
+        for bullet in self.bullets:
+            bullet.update()
+
+            if not bullet.active:
+                self.bullets.remove(bullet)
+
         key_pressed = pygame.key.get_pressed()
         
         if key_pressed[pygame.K_RIGHT]:
@@ -48,6 +60,10 @@ class Game:
         self.display.fill((0, 0, 0))
         for asteroid in self.asteroids:
             asteroid.draw()
+
+        for bullet in self.bullets:
+            bullet.draw()
+
         self.ship.draw()
 
     def wrap_position(self, position, size):
@@ -148,6 +164,27 @@ class Ship:
             pygame.draw.line(self.game.display, colour, self.position + (self.direction * distance), self.point2)
             pygame.draw.line(self.game.display, colour, self.position + (self.direction * distance), self.point3)
 
+
+class Bullet:
+    def __init__(self, game, position, direction):
+        self.game = game
+        self.position = position
+        self.velocity = direction * 15
+        self.active = True 
+        self.distance_covered = pygame.math.Vector2()
+
+    def update(self):
+        self.position = self.game.wrap_position(self.position + self.velocity, 1) 
+        self.distance_covered = self.distance_covered + self.velocity
+
+        if self.distance_covered.length() > 2000:
+            self.active = False
+
+    def draw(self):
+        pygame.draw.rect(
+            self.game.display,
+            'white',
+            (self.position.x + 5, self.position.y + 5, 10, 10))
 
 class Asteroid:
     def __init__(self, game, size=3):
