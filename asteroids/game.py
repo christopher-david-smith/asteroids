@@ -152,7 +152,7 @@ class Ship:
 class Asteroid:
     def __init__(self, game, size=3):
         self.game = game
-        self.position = pygame.math.Vector2(500, 500)
+        self.size = size
         self.rotation_speed = random.choice([-2, -1, 1, 2]) / 30
         self.velocity = pygame.math.Vector2(
             random.uniform(-1, 1), 
@@ -172,7 +172,26 @@ class Asteroid:
             distance = int(random.randint(50, 100)) * size
             self.points.append((distance, angle))
 
-        self.size = max([p[0] for p in self.points])
+        self.draw_size = max([p[0] for p in self.points])
+
+        spawn_position = random.randint(0,3)
+        if spawn_position == 0: # Top
+            x = random.randint(0, constants.SCREEN_WIDTH)
+            y = -self.draw_size
+
+        elif spawn_position == 1: # Right
+            x = constants.SCREEN_WIDTH + self.draw_size
+            y = random.randint(0, constants.SCREEN_HEIGHT)
+
+        elif spawn_position == 2: # Bottom
+            x = random.randint(0, constants.SCREEN_WIDTH)
+            y = constants.SCREEN_HEIGHT + self.draw_size
+
+        else: # Left
+            x = -self.draw_size
+            y = random.randint(0, constants.SCREEN_HEIGHT)
+
+        self.position = pygame.math.Vector2(x, y)
 
     def update(self):
         for i, _ in enumerate(self.points):
@@ -182,7 +201,7 @@ class Asteroid:
             new_angle = angle + (self.rotation_speed * self.game.dt) % 360
             self.points[i] = (direction, new_angle)
 
-        self.position = self.game.wrap_position(self.position + self.velocity, self.size)
+        self.position = self.game.wrap_position(self.position + self.velocity, self.draw_size)
 
     def draw(self):
         for index, point in enumerate(self.points):
