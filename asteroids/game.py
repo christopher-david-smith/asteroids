@@ -9,7 +9,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.display = pygame.display.set_mode(constants.SCREEN_SIZE)
-        self.astroid = Astroid(self)
+        self.asteroid = Asteroid(self)
         self.ship = Ship(self, constants.SCREEN_WIDTH / 2, constants.SCREEN_HEIGHT / 2)
         self.clock = pygame.time.Clock()
         self.dt = 0
@@ -27,11 +27,11 @@ class Game:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    self.astroid = Astroid(self, size=random.randint(1, 3))
+                    self.asteroid = Asteroid(self, size=random.randint(1, 3))
 
     def update(self):
         self.ship.update()
-        self.astroid.update()
+        self.asteroid.update()
         key_pressed = pygame.key.get_pressed()
         
         if key_pressed[pygame.K_RIGHT]:
@@ -49,7 +49,7 @@ class Game:
 
     def draw(self):
         self.display.fill((0, 0, 0))
-        self.astroid.draw()
+        self.asteroid.draw()
         self.ship.draw()
 
     def wrap_position(self, position):
@@ -127,7 +127,7 @@ class Ship:
             pygame.draw.line(self.game.display, colour, self.position + (self.direction * distance), self.point3)
 
 
-class Astroid:
+class Asteroid:
     def __init__(self, game, size=3):
         self.game = game
         self.position = pygame.math.Vector2(500, 500)
@@ -137,7 +137,7 @@ class Astroid:
             random.uniform(-1, 1)
         ).normalize() * random.randint(1, 3)
 
-        # Generate number of points astroid should have
+        # Generate number of points asteroid should have
         number_of_points = random.randint(5, 10)
         degrees_per_point = 360 / number_of_points
         
@@ -148,7 +148,7 @@ class Astroid:
             end = int(degrees_per_point * (r + 1))
             angle = int(random.randint(start, end))
             distance = int(random.randint(50, 100)) * size
-            self.points.append((distance, angle))o
+            self.points.append((distance, angle))
 
         self.size = max([p[0] for p in self.points])
 
