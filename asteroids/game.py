@@ -50,10 +50,33 @@ class Game:
             asteroid.draw()
         self.ship.draw()
 
-    def wrap_position(self, position):
+    def wrap_position(self, position, size):
         x, y = position
         w, h = constants.SCREEN_SIZE
-        return pygame.math.Vector2(x % w, y % h)
+
+        new_position_x = x
+        new_position_y = y
+
+        if x < -size:
+            new_position_x = w + size
+        elif x > w + size:
+            new_position_x = -size
+
+        if y < -size:
+            new_position_y = h + size
+        elif y > h + size:
+            new_position_y = -size
+
+        return pygame.math.Vector2(new_position_x, new_position_y)
+        
+        if x < -size or y < -size or x > w + size or y > h + size:
+            print(x, y, x % (w+(size*2)), y % (h+(size*2)))
+            return pygame.math.Vector2(x % (w + (size *2 )), y % (h + (size * 2)))
+
+        return position
+
+#        if position.x < -size or position.y <- size or position.x >
+ #       return pygame.math.Vector2(x % w, y % h)
 
 class Ship:
     def __init__(self, game, x, y):
@@ -68,6 +91,7 @@ class Ship:
         self.thrusting_frame = 0
         self.next_update_time = time.time()
         self.refresh_time = 0.1
+        self.size = 100 # This shouldn't be hardcoded
 
         self.point1, self.point2, self.point3 = None, None, None
 
@@ -94,7 +118,7 @@ class Ship:
             if speed > 0:
                 self.velocity += ((self.velocity.normalize() * -1) * self.deceleration)
 
-        self.position = self.game.wrap_position(self.position + self.velocity)
+        self.position = self.game.wrap_position(self.position + self.velocity, self.size)
 
 
     def rotate(self, clockwise=True):
@@ -158,17 +182,7 @@ class Asteroid:
             new_angle = angle + (self.rotation_speed * self.game.dt) % 360
             self.points[i] = (direction, new_angle)
 
-        self.position = self.game.wrap_position(self.position + self.velocity)
-
-    def wrap_position(self, position):
-        pass
-        # if (position - (max_size / 2, max_size / 2)) 
-
-        # if position.x < (screen_size - (max_size / 2))
-
-        #position = self.position - pygame.math.Vector2(self.size / 2, self.size / 2)
-        # ==> any([l < 0 for l in list(v(1,-1))])
-
+        self.position = self.game.wrap_position(self.position + self.velocity, self.size)
 
     def draw(self):
         for index, point in enumerate(self.points):
