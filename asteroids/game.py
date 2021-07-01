@@ -181,8 +181,8 @@ class Ship:
 
                 self.colour = "white"
                 if collision:
-                    self.colour = "red"
-                    break
+                    print("YOU DEAD!")
+                    exit()
 
     def fire(self):
         self.game.bullets.append(
