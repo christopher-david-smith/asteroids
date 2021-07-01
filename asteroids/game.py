@@ -36,10 +36,26 @@ class Game:
             asteroid.update()
 
         for bullet in self.bullets:
-            bullet.update()
 
-            if bullet.out_of_bounds:
+            if not bullet.active:
                 self.bullets.remove(bullet)
+                continue
+
+            hit = False
+            for asteroid in self.asteroids:
+                for line in asteroid.lines:
+                    if bullet.rect.clipline(line):
+                        hit = True
+                        break
+
+                if hit:
+                    asteroid.split()
+                    break
+
+            if hit:
+                self.bullets.remove(bullet)
+
+            bullet.update()
 
         key_pressed = pygame.key.get_pressed()
         
@@ -85,14 +101,6 @@ class Game:
 
         return pygame.math.Vector2(new_position_x, new_position_y)
         
-        if x < -size or y < -size or x > w + size or y > h + size:
-            print(x, y, x % (w+(size*2)), y % (h+(size*2)))
-            return pygame.math.Vector2(x % (w + (size *2 )), y % (h + (size * 2)))
-
-        return position
-
-#        if position.x < -size or position.y <- size or position.x >
- #       return pygame.math.Vector2(x % w, y % h)
 
 class Ship:
     def __init__(self, game, x, y):
@@ -225,15 +233,27 @@ class Bullet:
         self.position = self.game.wrap_position(position, 1)
         self.velocity = direction * 15
         self.active = True 
+        self.rect = pygame.Rect(
+            self.position.x + 5,
+            self.position.y + 5,
+            10,
+            10)
 
     def update(self):
         self.position = self.position + self.velocity 
+        self.rect = pygame.Rect(
+            self.position.x + 5,
+            self.position.y + 5,
+            10,
+            10)
+
+        self.active = not(self.out_of_bounds)
 
     def draw(self):
         pygame.draw.rect(
             self.game.display,
             'white',
-            (self.position.x + 5, self.position.y + 5, 10, 10))
+            self.rect)
 
     @property
     def out_of_bounds(self):
@@ -245,7 +265,7 @@ class Bullet:
 
 
 class Asteroid:
-    def __init__(self, game, size=3):
+    def __init__(self, game, size=3, position=None):
         self.game = game
         self.size = size
         self.rotation_speed = random.choice([-2, -1, 1, 2]) / 30
@@ -269,29 +289,66 @@ class Asteroid:
 
         self.draw_size = max([p[0] for p in self.points])
 
-        spawn_position = random.randint(0,3)
-        if spawn_position == 0: # Top
-            x = random.randint(0, constants.SCREEN_WIDTH)
-            y = -self.draw_size
+        if position is None:
+            spawn_position = random.randint(0,3)
+            if spawn_position == 0: # Top
+                x = random.randint(0, constants.SCREEN_WIDTH)
+                y = -self.draw_size
 
-        elif spawn_position == 1: # Right
-            x = constants.SCREEN_WIDTH + self.draw_size
-            y = random.randint(0, constants.SCREEN_HEIGHT)
+            elif spawn_position == 1: # Right
+                x = constants.SCREEN_WIDTH + self.draw_size
+                y = random.randint(0, constants.SCREEN_HEIGHT)
 
-        elif spawn_position == 2: # Bottom
-            x = random.randint(0, constants.SCREEN_WIDTH)
-            y = constants.SCREEN_HEIGHT + self.draw_size
+            elif spawn_position == 2: # Bottom
+                x = random.randint(0, constants.SCREEN_WIDTH)
+                y = constants.SCREEN_HEIGHT + self.draw_size
 
-        else: # Left
-            x = -self.draw_size
-            y = random.randint(0, constants.SCREEN_HEIGHT)
+            else: # Left
+                x = -self.draw_size
+                y = random.randint(0, constants.SCREEN_HEIGHT)
 
-        self.position = pygame.math.Vector2(x, y)
-        
-        # Uncomment for debugging
-        #self.position = pygame.math.Vector2(500, 500)
-        #self.rotation_speed = 0
-        #self.velocity = pygame.math.Vector2()
+            self.position = pygame.math.Vector2(x, y)
+            
+            # Uncomment for debugging
+            #self.position = pygame.math.Vector2(500, 500)
+            #self.rotation_speed = 0
+            #self.velocity = pygame.math.Vector2()
+
+        else:
+            self.position = position
+
+    def split(self):
+
+        if self.size != 1:
+            for _ in range(2):
+                self.game.asteroids.append(
+                    Asteroid(
+                        self.game,
+                        self.size - 1,
+                        self.position))
+
+        self.game.asteroids.remove(self)
+
+    @property
+    def lines(self):
+        lines = []
+        for index, point in enumerate(self.points):
+            try:
+                next_point = self.points[index + 1]
+            except IndexError:
+                next_point = self.points[0]
+            
+            first_point = pygame.math.Vector2(self.position)
+            first_point.from_polar(point)
+            first_point = self.position + first_point
+
+            second_point = pygame.math.Vector2(self.position)
+            second_point.from_polar(next_point)
+            second_point = self.position + second_point
+
+            lines.append((first_point, second_point))
+
+        return lines
 
     def update(self):
         for i, _ in enumerate(self.points):
