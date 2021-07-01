@@ -38,7 +38,7 @@ class Game:
         for bullet in self.bullets:
             bullet.update()
 
-            if not bullet.active:
+            if bullet.out_of_bounds:
                 self.bullets.remove(bullet)
 
         key_pressed = pygame.key.get_pressed()
@@ -186,8 +186,10 @@ class Ship:
 
     def fire(self):
         self.game.bullets.append(
-            Bullet(self.game, self.position, self.direction * -1)
-        )
+            Bullet(
+                self.game,
+                self.position,
+                self.direction * -1)) 
 
     def rotate(self, clockwise=True):
         amount = 0.2 if clockwise else -0.2
@@ -220,23 +222,27 @@ class Ship:
 class Bullet:
     def __init__(self, game, position, direction):
         self.game = game
-        self.position = position
+        self.position = self.game.wrap_position(position, 1)
         self.velocity = direction * 15
         self.active = True 
-        self.distance_covered = pygame.math.Vector2()
 
     def update(self):
-        self.position = self.game.wrap_position(self.position + self.velocity, 1) 
-        self.distance_covered = self.distance_covered + self.velocity
-
-        if self.distance_covered.length() > 2000:
-            self.active = False
+        self.position = self.position + self.velocity 
 
     def draw(self):
         pygame.draw.rect(
             self.game.display,
             'white',
             (self.position.x + 5, self.position.y + 5, 10, 10))
+
+    @property
+    def out_of_bounds(self):
+        if self.position.x < 0 or self.position.x > constants.SCREEN_WIDTH:
+            return True
+    
+        if self.position.y < 0 or self.position.y > constants.SCREEN_HEIGHT:
+            return True
+
 
 class Asteroid:
     def __init__(self, game, size=3):
