@@ -9,7 +9,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.display = pygame.display.set_mode(constants.SCREEN_SIZE)
-        self.asteroids = [Asteroid(self)]
+        self.asteroids = [Asteroid(self) for _ in range(4)]
         self.bullets = []
         self.ship = Ship(self, constants.SCREEN_WIDTH / 2, constants.SCREEN_HEIGHT / 2)
         self.clock = pygame.time.Clock()
