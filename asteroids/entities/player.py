@@ -27,6 +27,7 @@ class Player:
         self.invincible = True 
         self.invincible_time = 2
         self.spawn_time = time.time()
+        self.sound_fire = pygame.mixer.Sound(f'{self.game.path}/assets/player_fire.wav')
 
         # Store coordinates that will be used to draw the player
         # These will be generated when the update function is called
@@ -50,6 +51,8 @@ class Player:
             if event.key == pygame.K_SPACE:
                 if len(self.game.current_scene.bullets) > 6:
                     return
+
+                pygame.mixer.Sound.play(self.sound_fire)
 
                 self.game.current_scene.bullets.append(
                     Bullet(

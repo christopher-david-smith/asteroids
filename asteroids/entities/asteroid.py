@@ -10,6 +10,7 @@ class Asteroid:
         self.rotation_speed = self.rotation_speed * random.choice([-1, 1])
         self.velocity = pygame.math.Vector2(random.uniform(-1, 1), random.uniform(-1, 1))
         self.velocity = self.velocity.normalize() * (random.randint(3, 8) / size)
+        self.sound_explode = pygame.mixer.Sound(f'{self.game.path}/assets/asteroid_explosion.wav')
 
         # Generate a number of points which we'll join together to draw
         # our asteroid
@@ -47,6 +48,7 @@ class Asteroid:
                         self.size - 1,
                         self.position))
 
+        pygame.mixer.Sound.play(self.sound_explode)
         self.game.current_scene.asteroids.remove(self)
 
     def update(self):

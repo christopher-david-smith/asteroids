@@ -2,10 +2,14 @@ import sys
 import pygame
 import scenes
 import time
+import pathlib
 
 class Game:
     def __init__(self):
+        pygame.mixer.pre_init(frequency=44100)
         pygame.init()
+        pygame.mixer.init(frequency=44100)
+        self.path = pathlib.Path(__file__).parent.resolve()
 
         # Set up display
         self.display_scale = 1.5
@@ -20,7 +24,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.previous_time = time.time()
         self.dt = 0
-        
+
         # Set up currennt scene
         self.current_scene = scenes.MainMenu(self)
         self.previous_scene = None
